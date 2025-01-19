@@ -14,5 +14,8 @@
   "host_permissions": [
     "*://*.wikipedia.org/*",
     "https://*.googleapis.com/*"
-  ]
+  ],
+   "content_security_policy": {
+        "extension_pages": "script-src-elem 'self' https://unpkg.com/; object-src 'self';"
+    }
 }

@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SumMap</title>
+  <title>Wiki AI summarizer</title>
   <link rel="stylesheet" href="popup.css">
-
 </head>
 <body>
-  <h1>SumMap</h1>
+  <h1>AI Wiki summarizer</h1>
+    <div class="dark-mode-toggle">
+        <label for="darkModeToggle">Dark Mode</label>
+    <input type="checkbox" id="darkModeToggle">
+     </div>
   <div id="summary"></div>
-    <div id="network-container" style="width:100%; height: 400px;"></div>
-    <button id="extractButton">Summarize</button>
-    <div id="loading" style="display:none;">Loading...</div>
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <button id="extractButton">Summarize</button>
+  <div id="loading" style="display:none;">Loading...</div>
   <script src="popup.js"></script>
 </body>
 </html>

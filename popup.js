@@ -1,19 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const summaryDiv = document.getElementById('summary');
-  const loadingDiv = document.getElementById('loading');
-  const networkContainer = document.getElementById('network-container');
+    const loadingDiv = document.getElementById('loading');
+    const darkModeToggle = document.getElementById('darkModeToggle');
 
-  // Load the stored summary when the popup opens
+
+    // Load theme preference from storage
+    chrome.storage.local.get(['darkMode'], (result) => {
+    const darkMode = result.darkMode;
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.checked = true;
+        }
+     });
+
+  // Load the stored summary when popup opens
   chrome.storage.local.get(['summary'], (result) => {
     if (result.summary) {
-      summaryDiv.innerText = "Summary:\n" + result.summary;
+      summaryDiv.innerText = result.summary;
     }
   });
+    
+
+  darkModeToggle.addEventListener('change', () => {
+        if(darkModeToggle.checked) {
+            document.body.classList.add('dark-mode');
+            chrome.storage.local.set({ darkMode: true });
+        } else {
+             document.body.classList.remove('dark-mode');
+              chrome.storage.local.set({ darkMode: false });
+        }
+   });
+
 
   document.getElementById('extractButton').addEventListener('click', async () => {
     loadingDiv.style.display = "block";
-    summaryDiv.innerText = "";
-    networkContainer.innerHTML = ""; // Clear previous network
+    summaryDiv.innerText = ""; // Clear previous summary
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
@@ -32,67 +53,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const extractedContent = response.content;
 
-      const MAX_INPUT_LENGTH = 3500;
+      const MAX_INPUT_LENGTH = 3000;
       let contentToSend = extractedContent;
       let truncationMessage = "";
 
       if (extractedContent.length > MAX_INPUT_LENGTH) {
         contentToSend = extractedContent.substring(0, MAX_INPUT_LENGTH);
-        truncationMessage = " (Truncated)";
+        truncationMessage = "";
       }
 
       const summary = await summarizeText(contentToSend);
       const summaryText = "Summary:\n" + summary + truncationMessage;
       summaryDiv.innerText = summaryText;
 
-      // Generate mind map data, this is where you will need to integrate any parser for your generated summary to be made into a mind map.
-      const mindmapData = generateMindMapData(summary);
-      renderMindMap(mindmapData);
-
       loadingDiv.style.display = "none";
-
-      // Store the Summary, we can no longer store the mindmap data
+      // Store the Summary
       chrome.storage.local.set({ summary: summaryText });
     });
   });
 });
-
-function generateMindMapData(summary) {
-  // Basic example, you will need to improve the logic to generate the mindmap data
-  // based on the structure of your generated summary, this could include using LLM to parse the generated summary.
-  return {
-    nodes: [
-      { id: 1, label: "Summary", level: 0 , shape: "box"},
-      { id: 2, label: summary, level: 1, shape: "box" }
-    ],
-    edges: [
-        { from: 1, to: 2 }
-     ]
-  };
-}
-
-function renderMindMap(mindmapData) {
-  const container = document.getElementById('network-container');
-  const options = {
-    layout: {
-        hierarchical: {
-          direction: 'UD',
-          sortMethod: 'directed',
-        },
-    },
-    edges: {
-      arrows: {
-           to: { enabled: false}
-           }
-    },
-    nodes: {
-        shape: "box",
-        margin: 10
-      },
-  };
-
-  const network = new vis.Network(container, mindmapData, options);
-}
 
 
 async function summarizeText(text) {
